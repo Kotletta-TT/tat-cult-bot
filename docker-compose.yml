@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  db:
+    environment:
+      - MARIADB_RANDOM_ROOT_PASSWORD=1
+      - MARIADB_DATABASE=testdb
+      - MARIADB_USER=testuser
+      - MARIADB_PASSWORD=testp@ss
+    image: mariadb
+    restart: always
+    ports:
+      - 3306:3306
+    networks:
+      - network
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8090:8080
+    networks:
+      - network
+  rmq:
+    image: rabbitmq:management-alpine
+    restart: always
+    ports: 
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - network
+  consumer-db:
+    build: consumer-db/
+    restart: always
+    networks:
+      - network
+  parser-culture-ru:
+    build: parse-culture-ru/
+    restart: always
+    depends_on:
+      - db
+      - rmq
+    networks:
+      - network
+  bot:
+    build: tat-cult-bot/
+    restart: always
+    networks:
+      - network
+    depends_on: 
+      - db
+      - rmq
+      - consumer-db
+      - parser-culture-ru
+networks:
+  network:
+    {}
+ 
+    
